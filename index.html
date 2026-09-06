@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Simulador Carta de Presentación - Técnico Mecánico</title>
+    <style>
+        /* -------------------- RESET Y BASE -------------------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: #f4f7fc;
+            padding: 16px;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .app {
+            max-width: 480px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px -12px rgba(0, 20, 30, 0.25);
+            padding: 20px 18px 30px;
+            transition: 0.2s;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0b3b5c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        h1 small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #4a6f8a;
+            margin-left: auto;
+        }
+
+        .subhead {
+            color: #475569;
+            font-size: 0.95rem;
+            border-left: 4px solid #2d7a9b;
+            padding-left: 12px;
+            margin-bottom: 24px;
+            background: #f0f6fa;
+            border-radius: 0 12px 12px 0;
+            padding: 10px 14px;
+        }
+
+        /* -------------------- STEPPER INDICATOR -------------------- */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: #dce5ed;
+            z-index: 0;
+        }
+
+        .step-dot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+            flex: 1;
+            cursor: default;
+        }
+
+        .step-dot .circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #dce5ed;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: 0.2s;
+        }
+
+        .step-dot.active .circle {
+            background: #1b6b8f;
+            color: #fff;
+            border-color: #1b6b8f;
+            box-shadow: 0 4px 10px rgba(27, 107, 143, 0.3);
+        }
+
+        .step-dot.done .circle {
+            background: #2d8f5e;
+            color: #fff;
+            border-color: #2d8f5e;
+        }
+
+        .step-dot .label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 6px;
+            color: #64748b;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .step-dot.active .label {
+            color: #1b6b8f;
+            font-weight: 700;
+        }
+
+        /* -------------------- PASOS (contenedores) -------------------- */
+        .step-panel {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            0% { opacity: 0.5; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #0b3b5c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-title span {
+            background: #dce5ed;
+            border-radius: 30px;
+            padding: 0 12px;
+            font-size: 0.75rem;
+            color: #1e293b;
+        }
+
+        /* -------------------- FORMULARIOS -------------------- */
+        .field-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        label .hint {
+            font-weight: 400;
+            color: #64748b;
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 2px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            border: 1.5px solid #dce5ed;
+            border-radius: 14px;
+            background: #fafcff;
+            transition: 0.15s;
+            font-family: inherit;
+            color: #0b1e2b;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1b6b8f;
+            box-shadow: 0 0 0 4px rgba(27, 107, 143, 0.15);
+            background: #ffffff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .checkbox-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin-top: 6px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #1b6b8f;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item label {
+            font-weight: 400;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .hint-block {
+            background: #f0f6fa;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 12px 0 6px;
+            font-size: 0.85rem;
+            color: #334155;
+            border-left: 4px solid #2d7a9b;
+        }
+
+        /* -------------------- BOTONES DE NAVEGACIÓN -------------------- */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 10px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            background: #e9edf2;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+            touch-action: manipulation;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: #1b6b8f;
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(27, 107, 143, 0.25);
+        }
+
+        .btn-primary:active {
+            background: #135a7a;
+        }
+
+        .btn-success {
+            background: #1f8b5e;
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(31, 139, 94, 0.3);
+        }
+
+        .btn-success:active {
+            background: #16744d;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #dce5ed;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* -------------------- VISTA PREVIA CARTA -------------------- */
+        .carta-preview {
+            background: #fafdff;
+            border-radius: 20px;
+            border: 1px solid #e2edf5;
+            padding: 20px 18px;
+            margin-top: 12px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #0b1e2b;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .carta-preview h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4a6f8a;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #e2edf5;
+            padding-bottom: 6px;
+        }
+
+        .carta-preview .carta-contenido {
+            white-space: pre-wrap;
+            font-family: 'Times New Roman', Georgia, serif;
+            font-size: 0.95rem;
+        }
+
+        .carta-preview .carta-contenido p {
+            margin: 0.6rem 0;
+        }
+
+        .carta-preview .firma {
+            margin-top: 1.2rem;
+            border-top: 1px dashed #bdd3e0;
+            padding-top: 1rem;
+        }
+
+        /* -------------------- BOTÓN DE DESCARGA DESTACADO -------------------- */
+        .download-wrap {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 18px 10px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            background: #0b3b5c;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(11, 59, 92, 0.3);
+            cursor: pointer;
+            transition: 0.15s;
+            touch-action: manipulation;
+        }
+
+        .btn-download:active {
+            transform: scale(0.97);
+            background: #082c45;
+        }
+
+        .btn-download i {
+            margin-right: 8px;
+        }
+
+        /* -------------------- RESPONSIVE AJUSTES -------------------- */
+        @media (max-width: 420px) {
+            .app { padding: 16px 12px; }
+            .step-dot .label { font-size: 0.5rem; }
+            .checkbox-grid { gap: 6px 10px; }
+            .checkbox-item { font-size: 0.85rem; }
+            .btn { font-size: 0.9rem; padding: 12px 8px; }
+        }
+
+        @media (min-width: 768px) {
+            body { padding: 32px; }
+            .app { max-width: 600px; }
+        }
+
+        /* -------------------- UTILITY -------------------- */
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 16px; }
+        .text-center { text-align: center; }
+        .hidden { display: none !important; }
+
+        /* Scroll suave */
+        .carta-preview::-webkit-scrollbar {
+            width: 5px;
+        }
+        .carta-preview::-webkit-scrollbar-track {
+            background: #eef4f8;
+            border-radius: 10px;
+        }
+        .carta-preview::-webkit-scrollbar-thumb {
+            background: #b6cfde;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app" id="app">
+    <header>
+        <h1>
+            📄 Carta de Presentación
+            <small>Téc. Mecánico</small>
+        </h1>
+        <div class="subhead">
+            Completá los pasos y obtené tu carta lista para descargar.
+        </div>
+    </header>
+
+    <!-- INDICADOR DE PASOS -->
+    <div class="stepper" id="stepper">
+        <div class="step-dot active" data-step="1">
+            <div class="circle">1</div>
+            <div class="label">Datos<br>personales</div>
+        </div>
+        <div class="step-dot" data-step="2">
+            <div class="circle">2</div>
+            <div class="label">Empresa</div>
+        </div>
+        <div class="step-dot" data-step="3">
+            <div class="circle">3</div>
+            <div class="label">Habilidades</div>
+        </div>
+        <div class="step-dot" data-step="4">
+            <div class="circle">4</div>
+            <div class="label">Vista previa</div>
+        </div>
+    </div>
+
+    <!-- ===================== PASO 1 ===================== -->
+    <div class="step-panel active" data-step="1">
+        <div class="step-title">
+            👤 Tus datos
+            <span>Paso 1/4</span>
+        </div>
+
+        <div class="field-group">
+            <label>Nombre completo
+                <span class="hint">Ej: Juan Carlos Pérez</span>
+            </label>
+            <input type="text" id="nombre" placeholder="Ingresá tu nombre y apellido" />
+        </div>
+
+        <div class="field-group">
+            <label>Teléfono
+                <span class="hint">Con código de área, ej: 351 1234567</span>
+            </label>
+            <input type="tel" id="telefono" placeholder="Teléfono de contacto" />
+        </div>
+
+        <div class="field-group">
+            <label>Correo electrónico
+                <span class="hint">Usá un correo profesional</span>
+            </label>
+            <input type="email" id="email" placeholder="tucorreo@ejemplo.com" />
+        </div>
+
+        <div class="field-group">
+            <label>Ciudad
+                <span class="hint">Donde residís actualmente</span>
+            </label>
+            <input type="text" id="ciudad" placeholder="Ej: Córdoba" />
+        </div>
+
+        <div class="nav-buttons">
+            <div></div>
+            <button class="btn btn-primary" id="next1" data-next="2">Siguiente →</button>
+        </div>
+    </div>
+
+    <!-- ===================== PASO 2 ===================== -->
+    <div class="step-panel" data-step="2">
+        <div class="step-title">
+            🏢 Datos de la empresa
+            <span>Paso 2/4</span>
+        </div>
+
+        <div class="field-group">
+            <label>Nombre de la empresa
+                <span class="hint">A la que te postulás</span>
+            </label>
+            <input type="text" id="empresa" placeholder="Ej: Industrias Mecánicas S.A." />
+        </div>
+
+        <div class="field-group">
+            <label>Departamento / Área
+                <span class="hint">Ej: Recursos Humanos, Selección, etc.</span>
+            </label>
+            <input type="text" id="departamento" placeholder="Recursos Humanos" />
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="prev2" data-prev="1">← Anterior</button>
+            <button class="btn btn-primary" id="next2" data-next="3">Siguiente →</button>
+        </div>
+    </div>
+
+    <!-- ===================== PASO 3 ===================== -->
+    <div class="step-panel" data-step="3">
+        <div class="step-title">
+            🛠️ Habilidades y competencias
+            <span>Paso 3/4</span>
+        </div>
+
+        <div class="field-group">
+            <label>Tipo de postulación
+                <span class="hint">Seleccioná la opción que corresponda</span>
+            </label>
+            <select id="tipoPostulacion">
+                <option value="Pasantía">Pasantía</option>
+                <option value="Primer empleo" selected>Primer empleo</option>
+                <option value="Prácticas profesionalizantes">Prácticas profesionalizantes</option>
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label>Habilidades técnicas <span class="hint">Seleccioná las que desarrollaste en el taller</span></label>
+            <div class="checkbox-grid" id="habilidadesTecnicas">
+                <div class="checkbox-item"><input type="checkbox" value="Metrología" /> <label>Metrología</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Interpretación de planos" /> <label>Interpretación de planos</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Torneado" /> <label>Torneado</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Fresado" /> <label>Fresado</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Soldadura" /> <label>Soldadura</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Normas de seguridad" /> <label>Normas de seguridad</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Mantenimiento" /> <label>Mantenimiento</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Control de calidad" /> <label>Control de calidad</label></div>
+            </div>
+            <div class="field-group mt-2">
+                <label>Otras habilidades <span class="hint">Si tenés alguna adicional, escribila</span></label>
+                <textarea id="otrasHabilidades" placeholder="Ej: programación de CNC, soldadura TIG, etc."></textarea>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Competencias blandas <span class="hint">Seleccioná las que te definen</span></label>
+            <div class="checkbox-grid" id="competenciasBlandas">
+                <div class="checkbox-item"><input type="checkbox" value="Proactividad" /> <label>Proactividad</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Responsabilidad" /> <label>Responsabilidad</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Trabajo en equipo" /> <label>Trabajo en equipo</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Comunicación efectiva" /> <label>Comunicación efectiva</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Adaptabilidad" /> <label>Adaptabilidad</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Resolución de problemas" /> <label>Resolución de problemas</label></div>
+                <div class="checkbox-item"><input type="checkbox" value="Orientación al logro" /> <label>Orientación al logro</label></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="prev3" data-prev="2">← Anterior</button>
+            <button class="btn btn-primary" id="next3" data-next="4">Siguiente →</button>
+        </div>
+    </div>
+
+    <!-- ===================== PASO 4 ===================== -->
+    <div class="step-panel" data-step="4">
+        <div class="step-title">
+            👁️ Vista previa y descarga
+            <span>Paso 4/4</span>
+        </div>
+        <p style="color:#475569; font-size:0.9rem; margin-bottom:12px;">
+            Revisá tu carta y descargala en formato <strong>.doc</strong> para editarla en Word.
+        </p>
+
+        <div class="carta-preview" id="cartaPreview">
+            <h3>📄 Carta de presentación</h3>
+            <div class="carta-contenido" id="cartaContenido">
+                <!-- Se genera dinámicamente con JS -->
+                Completá los pasos anteriores para ver el borrador.
+            </div>
+        </div>
+
+        <div class="download-wrap">
+            <button class="btn-download" id="btnDescargar">
+                ⬇️ Descargar Carta de Presentación (.doc)
+            </button>
+        </div>
+
+        <div class="nav-buttons" style="margin-top:16px;">
+            <button class="btn btn-outline" id="prev4" data-prev="3">← Anterior</button>
+            <div></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ---------- ELEMENTOS DEL DOM ----------
+        const panels = document.querySelectorAll('.step-panel');
+        const dots = document.querySelectorAll('.step-dot');
+        const nextBtns = document.querySelectorAll('[data-next]');
+        const prevBtns = document.querySelectorAll('[data-prev]');
+
+        // Campos
+        const nombre = document.getElementById('nombre');
+        const telefono = document.getElementById('telefono');
+        const email = document.getElementById('email');
+        const ciudad = document.getElementById('ciudad');
+        const empresa = document.getElementById('empresa');
+        const departamento = document.getElementById('departamento');
+        const tipoPostulacion = document.getElementById('tipoPostulacion');
+
+        // Checkboxes agrupados
+        const techCheckboxes = document.querySelectorAll('#habilidadesTecnicas input[type="checkbox"]');
+        const softCheckboxes = document.querySelectorAll('#competenciasBlandas input[type="checkbox"]');
+        const otrasHabilidades = document.getElementById('otrasHabilidades');
+
+        const cartaContenido = document.getElementById('cartaContenido');
+        const btnDescargar = document.getElementById('btnDescargar');
+
+        // ---------- ESTADO ----------
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // ---------- FUNCIONES DE NAVEGACIÓN ----------
+        function goToStep(step) {
+            if (step < 1 || step > totalSteps) return;
+
+            // Ocultar todos los paneles y quitar active de dots
+            panels.forEach(p => p.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active', 'done'));
+
+            // Mostrar panel y activar dot
+            const panel = document.querySelector(`.step-panel[data-step="${step}"]`);
+            if (panel) panel.classList.add('active');
+
+            const dot = document.querySelector(`.step-dot[data-step="${step}"]`);
+            if (dot) dot.classList.add('active');
+
+            // Marcar como done los pasos anteriores
+            for (let i = 1; i < step; i++) {
+                const d = document.querySelector(`.step-dot[data-step="${i}"]`);
+                if (d) d.classList.add('done');
+            }
+
+            currentStep = step;
+            // Actualizar vista previa si estamos en paso 4
+            if (step === 4) actualizarVistaPrevia();
+        }
+
+        // ---------- ACTUALIZAR VISTA PREVIA ----------
+        function actualizarVistaPrevia() {
+            const nom = nombre.value.trim() || '[Nombre]';
+            const tel = telefono.value.trim() || '[Teléfono]';
+            const mail = email.value.trim() || '[Correo]';
+            const city = ciudad.value.trim() || '[Ciudad]';
+            const emp = empresa.value.trim() || '[Empresa]';
+            const dept = departamento.value.trim() || '[Departamento]';
+            const tipo = tipoPostulacion.value;
+
+            // Habilidades técnicas seleccionadas
+            const techSelected = [];
+            techCheckboxes.forEach(cb => {
+                if (cb.checked) techSelected.push(cb.value);
+            });
+            const otras = otrasHabilidades.value.trim();
+            if (otras) techSelected.push(otras);
+
+            // Competencias blandas seleccionadas
+            const softSelected = [];
+            softCheckboxes.forEach(cb => {
+                if (cb.checked) softSelected.push(cb.value);
+            });
+
+            // Construir texto de habilidades
+            let techText = '';
+            if (techSelected.length > 0) {
+                techText = '• ' + techSelected.join('\n• ');
+            } else {
+                techText = '• (Indicá tus habilidades técnicas)';
+            }
+
+            let softText = '';
+            if (softSelected.length > 0) {
+                softText = '• ' + softSelected.join('\n• ');
+            } else {
+                softText = '• (Indicá tus competencias blandas)';
+            }
+
+            // Fecha actual
+            const hoy = new Date();
+            const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
+            const fechaStr = hoy.toLocaleDateString('es-ES', opcionesFecha);
+
+            // Construir carta
+            const carta = `
+                ${city}, ${fechaStr}
+
+                ${emp}
+                Departamento de ${dept}
+                Presente
+
+                Asunto: Postulación para ${tipo} en ${emp}
+
+                Estimados señores:
+
+                Me dirijo a ustedes para presentar mi candidatura a la posición de ${tipo} en el área de ${dept}. Soy estudiante del último año de la especialidad de Técnico Mecánico, con una sólida formación en el taller y un fuerte interés en aplicar mis conocimientos en un entorno profesional.
+
+                A lo largo de mi formación, he desarrollado habilidades técnicas que considero valiosas para su empresa:
+
+                ${techText}
+
+                Además, me caracterizo por las siguientes competencias:
+
+                ${softText}
+
+                Estoy convencido de que mi perfil se ajusta a las necesidades de su organización y me entusiasma la posibilidad de aportar mi compromiso, responsabilidad y capacidad de aprendizaje. Quedo a su disposición para ampliar mi información en una entrevista personal.
+
+                Agradezco de antemano su consideración y quedo atento a cualquier consulta.
+
+                Sin otro particular, les saludo atentamente.
+
+                ${nom}
+                Teléfono: ${tel}
+                Correo: ${mail}
+            `;
+
+            cartaContenido.textContent = carta;
+        }
+
+        // ---------- DESCARGA .DOC ----------
+        function generarDoc() {
+            const nom = nombre.value.trim() || '[Nombre]';
+            const tel = telefono.value.trim() || '[Teléfono]';
+            const mail = email.value.trim() || '[Correo]';
+            const city = ciudad.value.trim() || '[Ciudad]';
+            const emp = empresa.value.trim() || '[Empresa]';
+            const dept = departamento.value.trim() || '[Departamento]';
+            const tipo = tipoPostulacion.value;
+
+            const techSelected = [];
+            techCheckboxes.forEach(cb => { if (cb.checked) techSelected.push(cb.value); });
+            const otras = otrasHabilidades.value.trim();
+            if (otras) techSelected.push(otras);
+
+            const softSelected = [];
+            softCheckboxes.forEach(cb => { if (cb.checked) softSelected.push(cb.value); });
+
+            let techText = (techSelected.length > 0) ? '• ' + techSelected.join('\n• ') : '• (Indicá tus habilidades técnicas)';
+            let softText = (softSelected.length > 0) ? '• ' + softSelected.join('\n• ') : '• (Indicá tus competencias blandas)';
+
+            const hoy = new Date();
+            const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
+            const fechaStr = hoy.toLocaleDateString('es-ES', opcionesFecha);
+
+            // Contenido HTML para Word
+            const contenidoHTML = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset="UTF-8"><title>Carta de Presentación</title>
+                <style>
+                    body { font-family: 'Times New Roman', Georgia, serif; font-size: 12pt; line-height: 1.6; margin: 40px; }
+                    .firma { margin-top: 24px; }
+                    p { margin: 6px 0; }
+                    .destinatario { margin-bottom: 20px; }
+                    .asunto { font-weight: bold; margin: 16px 0 12px; }
+                </style>
+                </head>
+                <body>
+                    <p>${city}, ${fechaStr}</p>
+                    <br>
+                    <div class="destinatario">
+                        <p>${emp}</p>
+                        <p>Departamento de ${dept}</p>
+                        <p>Presente</p>
+                    </div>
+                    <p class="asunto">Asunto: Postulación para ${tipo} en ${emp}</p>
+                    <p>Estimados señores:</p>
+                    <p>Me dirijo a ustedes para presentar mi candidatura a la posición de ${tipo} en el área de ${dept}. Soy estudiante del último año de la especialidad de Técnico Mecánico, con una sólida formación en el taller y un fuerte interés en aplicar mis conocimientos en un entorno profesional.</p>
+                    <p>A lo largo de mi formación, he desarrollado habilidades técnicas que considero valiosas para su empresa:</p>
+                    <p>${techText.replace(/\n/g, '<br>')}</p>
+                    <p>Además, me caracterizo por las siguientes competencias:</p>
+                    <p>${softText.replace(/\n/g, '<br>')}</p>
+                    <p>Estoy convencido de que mi perfil se ajusta a las necesidades de su organización y me entusiasma la posibilidad de aportar mi compromiso, responsabilidad y capacidad de aprendizaje. Quedo a su disposición para ampliar mi información en una entrevista personal.</p>
+                    <p>Agradezco de antemano su consideración y quedo atento a cualquier consulta.</p>
+                    <p>Sin otro particular, les saludo atentamente.</p>
+                    <div class="firma">
+                        <p>${nom}</p>
+                        <p>Teléfono: ${tel}</p>
+                        <p>Correo: ${mail}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([contenidoHTML], {
+                type: 'application/msword;charset=utf-8'
+            });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Carta_Presentacion_TecMecanico.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        // ---------- EVENTOS DE NAVEGACIÓN ----------
+        nextBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const nextStep = parseInt(this.dataset.next, 10);
+                if (nextStep >= 1 && nextStep <= totalSteps) {
+                    goToStep(nextStep);
+                }
+            });
+        });
+
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const prevStep = parseInt(this.dataset.prev, 10);
+                if (prevStep >= 1 && prevStep <= totalSteps) {
+                    goToStep(prevStep);
+                }
+            });
+        });
+
+        // ---------- EVENTOS PARA ACTUALIZAR VISTA PREVIA EN TIEMPO REAL ----------
+        const inputs = [nombre, telefono, email, ciudad, empresa, departamento, tipoPostulacion, otrasHabilidades];
+        inputs.forEach(inp => {
+            inp.addEventListener('input', function() {
+                if (currentStep === 4) actualizarVistaPrevia();
+            });
+            inp.addEventListener('change', function() {
+                if (currentStep === 4) actualizarVistaPrevia();
+            });
+        });
+
+        // Checkboxes
+        [...techCheckboxes, ...softCheckboxes].forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (currentStep === 4) actualizarVistaPrevia();
+            });
+        });
+
+        // ---------- BOTÓN DE DESCARGA ----------
+        btnDescargar.addEventListener('click', generarDoc);
+
+        // ---------- INICIALIZAR ----------
+        goToStep(1);
+
+        // Pequeño helper: si cambian en otros pasos, se actualiza al llegar a paso 4
+        // ya que actualizarVistaPrevia se llama desde goToStep.
+        // También se puede llamar manualmente desde eventos, pero ya está.
+
+        // Forzar actualización inicial en paso 1 (no hay vista previa)
+        // Pero cuando vayan al paso 4 se actualizará.
+
+        console.log('Simulador de carta de presentación listo.');
+    })();
+</script>
+
+</body>
+</html>
